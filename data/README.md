@@ -1,0 +1,1 @@
+- You can download and process dataset using `scripts/data_process/deepscaler.py` and `scripts/data_process/DeepMath-103K.py`
