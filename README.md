@@ -22,6 +22,8 @@
 
 ---
 
+<a id="overview"></a>
+
 ## 📖 Overview
 
 ![teaser](imgs/overview.png)
@@ -29,6 +31,8 @@
 Reinforcement Learning with Verifiable Rewards (RLVR) enhances Large Language Model (LLM) reasoning but suffers from advantage collapse on ``hard samples'' where all rollouts fail. This lack of variance eliminates crucial learning signals. For these intractable samples, simply scaling up rollout budgets offers limited gains. We introduce Joint Policy and Prompt Optimization (P$^2$O) to mitigate this collapse by alternating continuous policy updates with discrete prompt evolution. P$^2$O leverages the GEPA algorithm to discover successful reasoning prompts for intractable instances. Via context distillation, the model internalizes these prompt-induced gains directly into its parameters, removing the need for inference-time prompting. Empirically, P$^2$O restores critical advantage signals, significantly outperforming standard GRPO and surpassing baselines with doubled rollout budgets, ultimately yielding strong out-of-distribution generalization and an up to $9.5\%$ performance improvement. Our findings expose the limits of standard exploration in sparse-reward environments, illuminating the potential of unifying evolutionary algorithms with reinforcement learning. This integration of discrete semantic search and continuous parameter updates establishes a self-reinforcing paradigm for autonomous LLM alignment.
 
 This repository is based on [verl](https://github.com/verl-project/verl) and provides scripts for dataset processing and training.
+
+<a id="getting-started"></a>
 
 ## ✨ Getting Started
 
@@ -55,7 +59,7 @@ python scripts/data_process/deepscaler.py
 python scripts/data_process/DeepMath-103K.py
 ```
 
-<!-- TODO: Add expected input/output paths and dataset download instructions. -->
+The DeepMath processing script generates multiple subsets corresponding to different difficulty levels and whether problem types are balanced. As described in our paper, we use the DeepMath subset with difficulty >= 7, located at `./data/deepmath/baseline_boxed/hard_le_7/balanced`. This directory contains two training-set sizes, which correspond to different experiments in the paper.
 
 ### 🚀 Training
 
@@ -94,10 +98,14 @@ TODO: Fill in the key parameters used by the training scripts.
 
 We employ the open-source evaluation suite2 provided by Qwen for all mathematical benchmarks: https://github.com/QwenLM/Qwen2.5-Math/tree/main/evaluation
 
+<a id="contact"></a>
+
 ## 📨 Contact
 
 - **Kaiqi Zhang**:  zhangkaiqi.zlk@gmail.com
 - **Xinyu Lu**: luxinyu2021@iscas.ac.cn
+
+<a id="citation"></a>
 
 ## 🎈 Citation
 
