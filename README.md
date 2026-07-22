@@ -1,5 +1,109 @@
-- You can download and process dataset using `scripts/data_process/deepscaler.py` and `scripts/data_process/DeepMath-103K.py`
+<div align="center">
 
-- **Quick Start:** 
-    - Self reflection: `/bin/bash my_scripts/deepmath_qwen_3_4B_in_distribution_ref_model_reference_replace_hard_clip_0.01-10.sh`
-    - Kimi reflection: `/bin/bash my_scripts/deepscaler_grpo_with_gepa_wo_addition_grpo_in_distribution_ref_model_kimi_qwen3_4B_replace_prompts_when_log_prob.sh`
+# P2O
+
+<!-- TODO: Replace the project title above with the final paper/project title. -->
+<!-- TODO: Add paper/code/model/dataset badges when the public links are ready. -->
+
+</div>
+
+<div align="center">
+  <p>
+    <a href="#overview"><b>Overview</b></a> ·
+    <a href="#getting-started"><b>Getting Started</b></a> ·
+    <a href="#contact"><b>Contact</b></a> ·
+    <a href="#citation"><b>Citation</b></a>
+  </p>
+</div>
+
+---
+
+## Overview
+
+![teaser](imgs/overview.png)
+
+Reinforcement Learning with Verifiable Rewards (RLVR) enhances Large Language Model (LLM) reasoning but suffers from advantage collapse on ``hard samples'' where all rollouts fail. This lack of variance eliminates crucial learning signals. For these intractable samples, simply scaling up rollout budgets offers limited gains. We introduce Joint Policy and Prompt Optimization (P$^2$O) to mitigate this collapse by alternating continuous policy updates with discrete prompt evolution. P$^2$O leverages the GEPA algorithm to discover successful reasoning prompts for intractable instances. Via context distillation, the model internalizes these prompt-induced gains directly into its parameters, removing the need for inference-time prompting. Empirically, P$^2$O restores critical advantage signals, significantly outperforming standard GRPO and surpassing baselines with doubled rollout budgets, ultimately yielding strong out-of-distribution generalization and an up to $9.5\%$ performance improvement. Our findings expose the limits of standard exploration in sparse-reward environments, illuminating the potential of unifying evolutionary algorithms with reinforcement learning. This integration of discrete semantic search and continuous parameter updates establishes a self-reinforcing paradigm for autonomous LLM alignment.
+
+This repository is based on [verl](https://github.com/verl-project/verl) and provides scripts for dataset processing and training.
+
+## Getting Started
+
+### Environment Setup
+
+We recommend using the following Docker image:
+
+```text
+https://hub.docker.com/layers/verlai/verl/vllm011.latest/images/sha256-3ce56ff018516b28ab9c4f4fc09d3aa67589074495ace75e2674b720aa4d0e5d
+```
+
+If you prefer to build the environment manually, install the verl dependencies with:
+
+```bash
+USE_MEGATRON=0 bash scripts/install_vllm_sglang_mcore.sh
+```
+
+### Data Preparation
+
+You can download and process datasets with:
+
+```bash
+python scripts/data_process/deepscaler.py
+python scripts/data_process/DeepMath-103K.py
+```
+
+<!-- TODO: Add expected input/output paths and dataset download instructions. -->
+
+### Training
+
+#### Self Reflection
+
+Run:
+
+```bash
+bash my_scripts/deepmath_qwen_3_4B_in_distribution_ref_model_reference_replace_hard_clip_0.01-10.sh
+```
+
+#### Kimi Reflection
+
+Run:
+
+```bash
+bash my_scripts/deepscaler_grpo_with_gepa_wo_addition_grpo_in_distribution_ref_model_kimi_qwen3_4B_replace_prompts_when_log_prob.sh
+```
+
+<details>
+<summary><b>Key Parameters</b></summary>
+
+TODO: Fill in the key parameters used by the training scripts.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `ACTOR_MODEL_PATH` | TODO | Path to the policy model to be trained |
+| `REWARD_MODEL_PATH` | TODO | Path to the reward or reference model |
+| `N_RESPONSES` | TODO | Number of rollout responses generated per prompt |
+| `MAX_PROMPT_LENGTH` | TODO | Maximum token length for prompts |
+| `MAX_RESP_LENGTH` | TODO | Maximum token length for responses |
+
+</details>
+
+### Evaluation
+
+TODO: Add evaluation commands, benchmark names, and expected output files.
+
+## Contact
+
+- Kaiqi Zhang:  zhangkaiqi.zlk@gmail.com
+- Xinyu Lu: luxinyu2021@iscas.ac.cn
+
+## Citation
+
+If you find this work helpful, please cite us:
+
+```bibtex
+@article{lu2026p,
+  title={P\^{} 2O: Joint Policy and Prompt Optimization},
+  author={Lu, Xinyu and Zhang, Kaiqi and Yang, Jinglin and Cao, Boxi and Lu, Yaojie and Lin, Hongyu and He, Min and Han, Xianpei and Sun, Le},
+  journal={arXiv preprint arXiv:2603.21877},
+  year={2026}
+}
+```
