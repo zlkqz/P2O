@@ -34,7 +34,13 @@ from tensordict import TensorDict
 from vllm import LLM, SamplingParams
 from vllm.distributed import parallel_state as vllm_ps
 from vllm.lora.request import LoRARequest
-from vllm.model_executor.sampling_metadata import SamplingMetadata
+try:
+    from vllm.model_executor.sampling_metadata import SamplingMetadata
+except ModuleNotFoundError:
+    try:
+        from vllm.v1.sample.metadata import SamplingMetadata
+    except ModuleNotFoundError:
+        SamplingMetadata = Any
 from vllm.worker.worker_base import WorkerWrapperBase
 
 from verl import DataProto

@@ -38,16 +38,27 @@ This repository is based on [verl](https://github.com/verl-project/verl) and pro
 
 ### 🛠️ Environment Setup
 
+#### Docker
+
 We recommend using the following Docker image:
 
 ```text
 https://hub.docker.com/layers/verlai/verl/vllm011.latest/images/sha256-3ce56ff018516b28ab9c4f4fc09d3aa67589074495ace75e2674b720aa4d0e5d
 ```
 
-If you prefer to build the environment manually, install the verl dependencies with:
+After starting the container, install the extra dependency:
+
+```bash
+pip install math-verify
+```
+
+#### Manual Installation
+
+If you prefer to build the environment manually, install the verl dependencies and the extra dependency with:
 
 ```bash
 USE_MEGATRON=0 bash scripts/install_vllm_sglang_mcore.sh
+pip install math-verify
 ```
 
 ### 📦 Data Preparation
@@ -59,11 +70,14 @@ python scripts/data_process/deepscaler.py
 python scripts/data_process/DeepMath-103K.py
 ```
 
-The DeepMath processing script generates multiple subsets corresponding to different difficulty levels and whether problem types are balanced. As described in our paper, we use the DeepMath subset with difficulty >= 7, located at `./data/deepmath/baseline_boxed/hard_le_7/balanced`. This directory contains two training-set sizes, which correspond to different experiments in the paper.
+The DeepMath processing script generates multiple subsets corresponding to different difficulty levels and whether problem types are balanced. As described in our paper, we use the DeepMath subset with difficulty >= 7, **located at `./data/deepmath/baseline_boxed/hard_le_7/balanced`**. This directory contains two training-set sizes, which correspond to different experiments in the paper.
 
 ### 🚀 Training
 
 #### Self Reflection
+
+This setting uses the reference model itself as the reflection model during GEPA iterations.
+Note that we use the reference model rather than the policy model, because we found that using the policy model for reflection tends to produce prompt templates with lower diversity in later training stages.
 
 Run:
 
@@ -73,26 +87,27 @@ bash my_scripts/deepmath_qwen_3_4B_in_distribution_ref_model_reference_replace_h
 
 #### Kimi Reflection
 
+This setting uses a stronger model as the reflection model.
+In our paper, we use Kimi as the reflection model.
+
+Before running this script, set `API_BASE` to your Kimi-compatible API endpoint.
+**You also need to insert your API key into `./verl/trainer/ppo/api_keys.txt`, which is read by the script through `API_KEY_FILE_PATH='api_keys.txt'`.**
+
 Run:
 
 ```bash
-bash my_scripts/deepscaler_grpo_with_gepa_wo_addition_grpo_in_distribution_ref_model_kimi_qwen3_4B_replace_prompts_when_log_prob.sh
+bash my_scripts/deepscaler_qwen_3_4B_in_distribution_ref_model_kimi_replace_hard_clip_0.01-10.sh
 ```
 
-<details>
-<summary><b>⚙️ Key Parameters</b></summary>
-
-TODO: Fill in the key parameters used by the training scripts.
+#### ⚙️ Key Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `ACTOR_MODEL_PATH` | TODO | Path to the policy model to be trained |
-| `REWARD_MODEL_PATH` | TODO | Path to the reward or reference model |
-| `N_RESPONSES` | TODO | Number of rollout responses generated per prompt |
-| `MAX_PROMPT_LENGTH` | TODO | Maximum token length for prompts |
-| `MAX_RESP_LENGTH` | TODO | Maximum token length for responses |
-
-</details>
+| `trainer.gepa.dev_ratio` | `300` | Validation set size used during GEPA iterations. |
+| `trainer.gepa.gepa_select_pareto_k` | `16` | Parallelism for GEPA exploration. We do not recommend changing this value, as it may affect training efficiency. |
+| `trainer.gepa.api_base` | Required | API endpoint of the reflection model. A separate reflection-model API service is required for GEPA iterations at the end of each epoch. |
+| `trainer.gepa.model_name` | Required | Name of the reflection model. |
+| `trainer.gepa.auto` | `"heavy_4"` | GEPA budget. We do not recommend changing this value. The default `"heavy_4"` corresponds to 4x the budget of the original GEPA algorithm. |
 
 ### 📊 Evaluation
 

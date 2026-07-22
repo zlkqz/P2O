@@ -537,7 +537,7 @@ class RayPPOTrainer:
         """
         Creates the train and validation dataloaders.
         """
-        from verl.trainer.main_ppo import create_rl_dataset, create_rl_sampler
+        from verl.trainer.main_ppo_gepa_wo_additional_grpo_in_distribution import create_rl_dataset, create_rl_sampler
 
         if train_dataset is None:
             train_dataset = create_rl_dataset(
@@ -628,7 +628,7 @@ class RayPPOTrainer:
             "reflection_gpu_memory_utilization": 0.2,
             "thinking_in_reflection": False,
             "use_api_model_to_reflection": False,
-            "api_base": "https://api.siliconflow.cn/v1",
+            "api_base": "https://api.xxx.cn/v1",    # Needs to be supplemented
             "model_name": "moonshotai/Kimi-K2-Instruct-0905",
             "api_key_file_name": "api_keys.txt",
             "proxies": None,

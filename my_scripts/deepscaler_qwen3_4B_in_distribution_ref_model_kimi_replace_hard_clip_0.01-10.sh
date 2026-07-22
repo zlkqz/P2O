@@ -2,24 +2,26 @@
 
 set -x
 
-export RAY_ADDRESS="auto"
+# export RAY_ADDRESS="auto"
 
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 export VLLM_ALLREDUCE_USE_SYMM_MEM=0
 
-export MODEL_PATH='xxx/Qwen3-4B'
+export MODEL_PATH='Qwen/Qwen3-4B'
 
-export EXPERIMENT_NAME=deepmath_qwen_3_4B_in_distribution_ref_model_reference_replace_hard_clip_0.01-10
+export EXPERIMENT_NAME=deepscaler_qwen3_4B_in_distribution_ref_model_kimi_replace_hard_clip_0.01-10
 
 SAVE_PATH="./$EXPERIMENT_NAME"
 
-# You need to manually set up a VLLM server as the reflection model
-VLLM_SERVER_ADDR="http://localhost:13516/v1"  # Server address of qwen3 4b 
+API_BASE='https://api.xxx.cn/v1'   # Needs to be supplemented
+API_MODEL_NAME='moonshotai/Kimi-K2-Instruct-0905'
+API_KEY_FILE_PATH='api_keys.txt'   # You need to insert the API key into `./verl/trainer/ppo/api_keys.txt`
+
 
 python3 -u -m verl.trainer.main_ppo_gepa_wo_additional_grpo_in_distribution \
     algorithm.adv_estimator=grpo \
-    data.train_files=./data/deepmath/baseline_boxed/very_hard_le_7/balanced/train_5000.parquet \
-    data.val_files=./data/deepmath/baseline_boxed/very_hard_le_7/balanced/test_500.parquet \
+    data.train_files=./data/deepscaler/baseline_boxed/train_5000.parquet \
+    data.val_files=./data/deepscaler/baseline_boxed/test_500.parquet \
     data.train_batch_size=128 \
     data.val_batch_size=256 \
     data.max_prompt_length=4096 \
@@ -76,7 +78,8 @@ python3 -u -m verl.trainer.main_ppo_gepa_wo_additional_grpo_in_distribution \
     +trainer.gepa.template_ratio_cliprange_high=9 \
     +trainer.gepa.soft_clip=false \
     +trainer.gepa.api_type="openai" \
-    +trainer.gepa.api_base=$VLLM_SERVER_ADDR \
-    +trainer.gepa.model_name="qwen3-4b" \
+    +trainer.gepa.api_base=$API_BASE \
+    +trainer.gepa.model_name=$API_MODEL_NAME \
+    +trainer.gepa.api_key_file_name=$API_KEY_FILE_PATH \
     +trainer.gepa.thinking_in_reflection=false \
     actor_rollout_ref.actor.checkpoint.save_contents=['model','optimizer','extra','hf_model']
