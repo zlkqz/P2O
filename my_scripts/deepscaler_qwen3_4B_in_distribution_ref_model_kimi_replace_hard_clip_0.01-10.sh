@@ -40,7 +40,7 @@ python3 -u -m verl.trainer.main_ppo_gepa_wo_additional_grpo_in_distribution \
     actor_rollout_ref.actor.fsdp_config.param_offload=false \
     actor_rollout_ref.actor.fsdp_config.optimizer_offload=false \
     actor_rollout_ref.rollout.log_prob_use_dynamic_bsz=True \
-    actor_rollout_ref.rollout.max_num_batched_tokens=600000 \
+    actor_rollout_ref.rollout.max_num_batched_tokens=300000 \
     actor_rollout_ref.rollout.tensor_model_parallel_size=2 \
     actor_rollout_ref.actor.fsdp_config.fsdp_size=2 \
     actor_rollout_ref.rollout.name=vllm \
