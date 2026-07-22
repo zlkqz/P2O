@@ -82,7 +82,7 @@ Note that we use the reference model rather than the policy model, because we fo
 Run:
 
 ```bash
-bash my_scripts/deepmath_qwen_3_4B_in_distribution_ref_model_reference_replace_hard_clip_0.01-10.sh
+/bin/bash my_scripts/deepmath_qwen_3_4B_in_distribution_ref_model_reference_replace_hard_clip_0.01-10.sh
 ```
 
 #### Kimi Reflection
@@ -96,7 +96,7 @@ Before running this script, set `API_BASE` to your Kimi-compatible API endpoint.
 Run:
 
 ```bash
-bash my_scripts/deepscaler_qwen_3_4B_in_distribution_ref_model_kimi_replace_hard_clip_0.01-10.sh
+/bin/bash my_scripts/deepscaler_qwen_3_4B_in_distribution_ref_model_kimi_replace_hard_clip_0.01-10.sh
 ```
 
 #### ⚙️ Key Parameters
