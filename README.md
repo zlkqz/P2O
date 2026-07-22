@@ -1,24 +1,28 @@
 <div align="center">
 
-# P2O
+# P^2O: Joint Policy and Prompt Optimization
 
-<!-- TODO: Replace the project title above with the final paper/project title. -->
-<!-- TODO: Add paper/code/model/dataset badges when the public links are ready. -->
+<p>
+  <a href="https://arxiv.org/pdf/2603.21877">
+    <img src="https://img.shields.io/badge/Paper-arXiv%3A2603.21877-b31b1b?style=for-the-badge&logo=arxiv&logoColor=white" alt="Paper">
+  </a>
+</p>
+
 
 </div>
 
 <div align="center">
   <p>
-    <a href="#overview"><b>Overview</b></a> ·
-    <a href="#getting-started"><b>Getting Started</b></a> ·
-    <a href="#contact"><b>Contact</b></a> ·
-    <a href="#citation"><b>Citation</b></a>
+    <a href="#overview"><b>📖 Overview</b></a> ·
+    <a href="#getting-started"><b>✨ Getting Started</b></a> ·
+    <a href="#contact"><b>📨 Contact</b></a> ·
+    <a href="#citation"><b>🎈 Citation</b></a>
   </p>
 </div>
 
 ---
 
-## Overview
+## 📖 Overview
 
 ![teaser](imgs/overview.png)
 
@@ -26,9 +30,9 @@ Reinforcement Learning with Verifiable Rewards (RLVR) enhances Large Language Mo
 
 This repository is based on [verl](https://github.com/verl-project/verl) and provides scripts for dataset processing and training.
 
-## Getting Started
+## ✨ Getting Started
 
-### Environment Setup
+### 🛠️ Environment Setup
 
 We recommend using the following Docker image:
 
@@ -42,7 +46,7 @@ If you prefer to build the environment manually, install the verl dependencies w
 USE_MEGATRON=0 bash scripts/install_vllm_sglang_mcore.sh
 ```
 
-### Data Preparation
+### 📦 Data Preparation
 
 You can download and process datasets with:
 
@@ -53,7 +57,7 @@ python scripts/data_process/DeepMath-103K.py
 
 <!-- TODO: Add expected input/output paths and dataset download instructions. -->
 
-### Training
+### 🚀 Training
 
 #### Self Reflection
 
@@ -72,7 +76,7 @@ bash my_scripts/deepscaler_grpo_with_gepa_wo_addition_grpo_in_distribution_ref_m
 ```
 
 <details>
-<summary><b>Key Parameters</b></summary>
+<summary><b>⚙️ Key Parameters</b></summary>
 
 TODO: Fill in the key parameters used by the training scripts.
 
@@ -86,16 +90,16 @@ TODO: Fill in the key parameters used by the training scripts.
 
 </details>
 
-### Evaluation
+### 📊 Evaluation
 
-TODO: Add evaluation commands, benchmark names, and expected output files.
+We employ the open-source evaluation suite2 provided by Qwen for all mathematical benchmarks: https://github.com/QwenLM/Qwen2.5-Math/tree/main/evaluation
 
-## Contact
+## 📨 Contact
 
-- Kaiqi Zhang:  zhangkaiqi.zlk@gmail.com
-- Xinyu Lu: luxinyu2021@iscas.ac.cn
+- **Kaiqi Zhang**:  zhangkaiqi.zlk@gmail.com
+- **Xinyu Lu**: luxinyu2021@iscas.ac.cn
 
-## Citation
+## 🎈 Citation
 
 If you find this work helpful, please cite us:
 
