@@ -109,7 +109,19 @@ class OpenAIHandler:
 
                 # Parse response
                 response_json = response.json()
-                generated_text = response_json["choices"][0]["message"]["content"]
+                message = response_json["choices"][0]["message"]
+                generated_text = message.get("content")
+                if generated_text is None:
+                    generated_text = message.get("reasoning_content")
+                    if generated_text is None:
+                        generated_text = ""
+                    else:
+                        generated_text = str(generated_text)
+                        if "</think>" in generated_text:
+                            generated_text = generated_text.split("</think>", 1)[1]
+                        generated_text = generated_text.strip()
+                elif not isinstance(generated_text, str):
+                    generated_text = str(generated_text)
                 return generated_text
 
             except Exception as e:

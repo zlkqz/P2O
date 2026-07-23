@@ -20,6 +20,6 @@ vllm serve ${MODEL} \
     --tensor-parallel-size ${TP_SIZE} \
     --gpu-memory-utilization 0.9 \
     --max-model-len 32768 \
-    --enable-reasoning \
+    --max_num_batched_tokens 65536 \
     --reasoning-parser deepseek_r1 \
     --trust-remote-code

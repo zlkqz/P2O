@@ -78,6 +78,7 @@ The DeepMath processing script generates multiple subsets corresponding to diffe
 
 This setting uses the reference model itself as the reflection model during GEPA iterations.
 Note that we use the reference model rather than the policy model, because we found that using the policy model for reflection tends to produce prompt templates with lower diversity in later training stages.
+You need to **separately set up a vllm API server as a reflection model**, and start the script at `my_scripts/start_vllm_server.sh`. We also started the VLLM server using the Docker image above, `vllm==0.11.0`
 
 Run:
 

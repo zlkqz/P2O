@@ -1707,10 +1707,34 @@ class RayPPOTrainer:
             print(f"[GEPA] Error: {error_msg}")
             raise RuntimeError(error_msg)
 
+    def _extract_improved_template_text(self, text) -> str:
+        if text is None:
+            return ""
+
+        text = str(text).strip()
+        if not text:
+            return ""
+
+        extracted_text = ""
+        if text.count("```") >= 2:
+            start = text.find("```")
+            end = text.rfind("```")
+            if start >= 0 and end > start:
+                extracted_text = text[start + 3 : end].strip()
+            else:
+                extracted_text = text.strip("` \n")
+        else:
+            extracted_text = text.strip("` \n")
+
+        if extracted_text.lower().startswith("markdown"):
+            extracted_text = extracted_text[8:].strip()
+
+        return extracted_text.strip()
+
     def _sample_instructions_from_prompts_batch(
         self,
         instruction_prompts: list[str],
-    ) -> list[str]:
+    ) -> list[tuple[int, str]]:
         """
         Batch generate improved templates from multiple reflection prompts.
         All prompts are processed together in a single GPU batch for efficiency.
@@ -1719,7 +1743,7 @@ class RayPPOTrainer:
             instruction_prompts: List of reflection prompts
 
         Returns:
-            List of improved templates (one per prompt)
+            List of (prompt index, improved template) pairs for non-empty generations.
         """
         if len(instruction_prompts) == 0:
             return []
@@ -1773,23 +1797,12 @@ class RayPPOTrainer:
             )
 
             improved_templates = []
-            for text in generated_texts:
-                text = text.strip()
-                extracted_text = ""
-                if text.count("```") >= 2:
-                    start = text.find("```")
-                    end = text.rfind("```")
-                    if start >= 0 and end > start:
-                        extracted_text = text[start + 3 : end].strip()
-                    else:
-                        extracted_text = text.strip("` \n")
-                else:
-                    extracted_text = text.strip("` \n")
-
-                if extracted_text.lower().startswith("markdown"):
-                    extracted_text = extracted_text[8:].strip()
-
-                improved_templates.append(extracted_text)
+            for prompt_idx, text in enumerate(generated_texts):
+                extracted_text = self._extract_improved_template_text(text)
+                if not extracted_text:
+                    print(f"[GEPA] Skipping empty API reflection output for prompt_idx={prompt_idx}.")
+                    continue
+                improved_templates.append((prompt_idx, extracted_text))
 
             return improved_templates
 
@@ -1831,23 +1844,12 @@ class RayPPOTrainer:
                 max_tokens=max_response_length,
             )
             
-            for text in generated_texts:
-                text = text.strip()
-                extracted_text = ""
-                if text.count("```") >= 2:
-                    start = text.find("```")
-                    end = text.rfind("```")
-                    if start >= 0 and end > start:
-                        extracted_text = text[start + 3 : end].strip()
-                    else:
-                        extracted_text = text.strip("` \n")
-                else:
-                    extracted_text = text.strip("` \n")
-
-                if extracted_text.lower().startswith("markdown"):
-                    extracted_text = extracted_text[8:].strip()
-
-                improved_templates.append(extracted_text)
+            for prompt_idx, text in enumerate(generated_texts):
+                extracted_text = self._extract_improved_template_text(text)
+                if not extracted_text:
+                    print(f"[GEPA] Skipping empty vLLM reflection output for prompt_idx={prompt_idx}.")
+                    continue
+                improved_templates.append((prompt_idx, extracted_text))
 
             return improved_templates
         
@@ -1919,22 +1921,12 @@ class RayPPOTrainer:
             responses = self.tokenizer.batch_decode(batch.batch["responses"], skip_special_tokens=True)
             
             for idx in range(len(batch_prompts)):
-                text = responses[idx].strip()
-                extracted_text = ""
-                if text.count("```") >= 2:
-                    start = text.find("```")
-                    end = text.rfind("```")
-                    if start >= 0 and end > start:
-                        extracted_text = text[start + 3 : end].strip()
-                    else:
-                        extracted_text = text.strip("` \n")
-                else:
-                    extracted_text = text.strip("` \n")
-
-                if extracted_text.lower().startswith("markdown"):
-                    extracted_text = extracted_text[8:].strip()
-
-                improved_templates.append(extracted_text)
+                prompt_idx = start_idx + idx
+                extracted_text = self._extract_improved_template_text(responses[idx])
+                if not extracted_text:
+                    print(f"[GEPA] Skipping empty rollout reflection output for prompt_idx={prompt_idx}.")
+                    continue
+                improved_templates.append((prompt_idx, extracted_text))
 
         return improved_templates
 
@@ -2443,12 +2435,17 @@ class RayPPOTrainer:
                     print("\n\n" + "=" * 100 + f"\n[GEPA] reflection_prompt:\n{reflection_prompt}\n" + "=" * 100 + "\n\n")
                     reflection_prompts.append(reflection_prompt)
                 
-                improved_template_list = self._sample_instructions_from_prompts_batch(reflection_prompts)
-                
+                improved_template_items = self._sample_instructions_from_prompts_batch(reflection_prompts)
+                improved_template_by_idx = dict(improved_template_items)
+
                 for idx, (prog_id, current_template, minibatch, _, score_before) in enumerate(minibatch_rewards_before):
-                    improved_template = improved_template_list[idx].strip() if idx < len(improved_template_list) else ""
+                    improved_template = improved_template_by_idx.get(idx, "")
                     if not improved_template:
-                        improved_template = current_template
+                        print(
+                            f"[GEPA][Epoch {epoch_idx}] Iteration {iteration + 1} "
+                            f"Template {prog_id} skipped because reflection output was empty."
+                        )
+                        continue
                     improved_templates.append((prog_id, current_template, improved_template, minibatch, score_before))
                     print(
                         f"[GEPA][Epoch {epoch_idx}] Iteration {iteration + 1} "
@@ -2456,48 +2453,54 @@ class RayPPOTrainer:
                     )
 
             accepted_candidates = []
-            with marked_timer("gepa_mb_after", timing_raw, color="yellow"):
-                improved_template_minibatch_pairs = [
-                    (improved_template, minibatch) 
-                    for _, _, improved_template, minibatch, _ in improved_templates
-                ]
-                all_reward_records_after = self._evaluate_multiple_prompts_on_samples_batch(
-                    improved_template_minibatch_pairs, rng
+            if not improved_templates:
+                print(
+                    f"[GEPA][Epoch {epoch_idx}] Iteration {iteration + 1}: "
+                    "No non-empty reflected templates; skipping minibatch after-eval."
                 )
-                
-                for idx, (prog_id, current_template, improved_template, minibatch, score_before) in enumerate(improved_templates):
-                    minibatch_reward_info_after = all_reward_records_after[idx]
-                    score_after = _sum_rewards(minibatch_reward_info_after)
-                    print(
-                        f"[GEPA][Epoch {epoch_idx}] Iteration {iteration + 1} "
-                        f"Template {prog_id} minibatch eval AFTER: score={score_after:.4f}, "
-                        f"improved_template={improved_template!r}"
+            else:
+                with marked_timer("gepa_mb_after", timing_raw, color="yellow"):
+                    improved_template_minibatch_pairs = [
+                        (improved_template, minibatch) 
+                        for _, _, improved_template, minibatch, _ in improved_templates
+                    ]
+                    all_reward_records_after = self._evaluate_multiple_prompts_on_samples_batch(
+                        improved_template_minibatch_pairs, rng
                     )
                     
-                    if self._logger is not None:
-                        gepa_metrics = {
-                            f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/minibatch_score_before": score_before,
-                            f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/minibatch_score_after": score_after,
-                            f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/minibatch_score_improvement": score_after - score_before,
-                            f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/current_template": current_template,
-                            f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/improved_template": improved_template,
-                        }
-                        self._logger.log(data=gepa_metrics, step=self.global_steps)
-
-                    if score_after > score_before:
-                        accepted_candidates.append((prog_id, improved_template, score_before, score_after))
-                    else:
+                    for idx, (prog_id, current_template, improved_template, minibatch, score_before) in enumerate(improved_templates):
+                        minibatch_reward_info_after = all_reward_records_after[idx]
+                        score_after = _sum_rewards(minibatch_reward_info_after)
                         print(
                             f"[GEPA][Epoch {epoch_idx}] Iteration {iteration + 1} "
-                            f"Template {prog_id} rejected candidate (minibatch score {score_after:.4f} <= {score_before:.4f})."
+                            f"Template {prog_id} minibatch eval AFTER: score={score_after:.4f}, "
+                            f"improved_template={improved_template!r}"
                         )
+                        
                         if self._logger is not None:
                             gepa_metrics = {
-                                f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/candidate_status": "rejected",
                                 f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/minibatch_score_before": score_before,
                                 f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/minibatch_score_after": score_after,
+                                f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/minibatch_score_improvement": score_after - score_before,
+                                f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/current_template": current_template,
+                                f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/improved_template": improved_template,
                             }
                             self._logger.log(data=gepa_metrics, step=self.global_steps)
+
+                        if score_after > score_before:
+                            accepted_candidates.append((prog_id, improved_template, score_before, score_after))
+                        else:
+                            print(
+                                f"[GEPA][Epoch {epoch_idx}] Iteration {iteration + 1} "
+                                f"Template {prog_id} rejected candidate (minibatch score {score_after:.4f} <= {score_before:.4f})."
+                            )
+                            if self._logger is not None:
+                                gepa_metrics = {
+                                    f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/candidate_status": "rejected",
+                                    f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/minibatch_score_before": score_before,
+                                    f"gepa/epoch_{epoch_idx}/iteration_{iteration + 1}/template_{prog_id}/minibatch_score_after": score_after,
+                                }
+                                self._logger.log(data=gepa_metrics, step=self.global_steps)
 
             if accepted_candidates:
                 with marked_timer("gepa_full_eval", timing_raw, color="green"):
