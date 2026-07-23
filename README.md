@@ -82,7 +82,7 @@ Note that we use the reference model rather than the policy model, because we fo
 
 You need to **separately set up a vllm API server as a reflection model**, and start the script at `my_scripts/start_vllm_server.sh`. We also started the VLLM server using the Docker image above, `vllm==0.11.0`
 
-Run:
+**Run:**
 
 ```bash
 /bin/bash my_scripts/deepmath_qwen_3_4B_in_distribution_ref_model_reference_replace_hard_clip_0.01-10.sh
@@ -98,7 +98,7 @@ Before running this script, set `API_BASE` to your Kimi-compatible API endpoint.
 
 **You also need to insert your API key into `./verl/trainer/ppo/api_keys.txt`, which is read by the script through `API_KEY_FILE_PATH='api_keys.txt'`.**
 
-Run:
+**Run:**
 
 ```bash
 /bin/bash my_scripts/deepscaler_qwen_3_4B_in_distribution_ref_model_kimi_replace_hard_clip_0.01-10.sh
