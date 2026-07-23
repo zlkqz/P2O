@@ -77,7 +77,9 @@ The DeepMath processing script generates multiple subsets corresponding to diffe
 #### Self Reflection
 
 This setting uses the reference model itself as the reflection model during GEPA iterations.
+
 Note that we use the reference model rather than the policy model, because we found that using the policy model for reflection tends to produce prompt templates with lower diversity in later training stages.
+
 You need to **separately set up a vllm API server as a reflection model**, and start the script at `my_scripts/start_vllm_server.sh`. We also started the VLLM server using the Docker image above, `vllm==0.11.0`
 
 Run:
@@ -89,9 +91,11 @@ Run:
 #### Kimi Reflection
 
 This setting uses a stronger model as the reflection model.
+
 In our paper, we use Kimi as the reflection model.
 
 Before running this script, set `API_BASE` to your Kimi-compatible API endpoint.
+
 **You also need to insert your API key into `./verl/trainer/ppo/api_keys.txt`, which is read by the script through `API_KEY_FILE_PATH='api_keys.txt'`.**
 
 Run:
