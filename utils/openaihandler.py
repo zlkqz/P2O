@@ -41,6 +41,17 @@ class OpenAIHandler:
         self.retry_delay = retry_delay
         self.proxies = proxies
 
+        if proxies is None:
+            for proxy_env_var in (
+                "HTTP_PROXY",
+                "HTTPS_PROXY",
+                "ALL_PROXY",
+                "http_proxy",
+                "https_proxy",
+                "all_proxy",
+            ):
+                os.environ.pop(proxy_env_var, None)
+
         # Thread-safe key rotation
         self.key_lock = threading.Lock()
         self.current_key_idx = 0
@@ -93,6 +104,9 @@ class OpenAIHandler:
                     "temperature": temperature,
                     "max_tokens": max_tokens,
                     "enable_thinking": enable_thinking,
+                    "chat_template_kwargs": {
+                        "enable_thinking": enable_thinking,
+                    },
                 }
 
                 # Make API call with requests
@@ -109,6 +123,7 @@ class OpenAIHandler:
 
                 # Parse response
                 response_json = response.json()
+                # print(response_json)
                 message = response_json["choices"][0]["message"]
                 generated_text = message.get("content")
                 if generated_text is None:
@@ -242,3 +257,22 @@ def load_api_keys_from_file(file_path: str) -> List[str]:
 
     print(f"[OpenAIHandler] Loaded {len(api_keys)} API keys from {file_path}")
     return api_keys
+
+
+if __name__ == "__main__":
+    handler = OpenAIHandler(
+        api_keys=["sk-6igkjLBQJ1sFa25e02w02CnDgudKeGUZOAnaKOSNjp6IkVaR"],
+        api_base="http://35.220.164.252:3888/v1",
+        model_name="kimi/kimi-k2.5",
+        max_workers=64,
+        proxies=None,
+    )
+
+    generated_texts = handler.batch_generate(
+        prompts=["你好", "1+1等于几"],
+        temperature=0.7,
+        max_tokens=5000,
+        enable_thinking=False,
+    )
+
+    print(generated_texts)

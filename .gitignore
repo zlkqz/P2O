@@ -51,6 +51,8 @@ Thumbs.db
 # Logs and runtime files
 logs/
 *.log
+*.err
+*.out
 *.pid
 
 # Experiment tracking
@@ -88,3 +90,6 @@ data/**/*.zip
 data/**/*.tar
 data/**/*.tar.gz
 !data/**/README.md
+
+
+nips_re/
