@@ -261,9 +261,9 @@ def load_api_keys_from_file(file_path: str) -> List[str]:
 
 if __name__ == "__main__":
     handler = OpenAIHandler(
-        api_keys=["sk-6igkjLBQJ1sFa25e02w02CnDgudKeGUZOAnaKOSNjp6IkVaR"],
-        api_base="http://35.220.164.252:3888/v1",
-        model_name="kimi/kimi-k2.5",
+        api_keys=["sk-xxx"],
+        api_base="http://xxx/v1",
+        model_name="xxx",
         max_workers=64,
         proxies=None,
     )
