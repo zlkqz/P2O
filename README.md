@@ -113,6 +113,9 @@ Before running this script, set `API_BASE` to your Kimi-compatible API endpoint.
 | `trainer.gepa.api_base` | Required | API endpoint of the reflection model. A separate reflection-model API service is required for GEPA iterations at the end of each epoch. |
 | `trainer.gepa.model_name` | Required | Name of the reflection model. |
 | `trainer.gepa.auto` | `"heavy_4"` | GEPA budget. We do not recommend changing this value. The default `"heavy_4"` corresponds to 4x the budget of the original GEPA algorithm. |
+| `trainer.gepa.enable_template_ratio_mask` | `True` | Enable Context Ratio Mask (CRM) |
+| `trainer.gepa.template_ratio_cliprange_low` | `0.99` | CRM lower clip boundary (1-0.99) |
+| `trainer.gepa.template_ratio_cliprange_high` | `9` | CRM higher clip boundary (1+9) |
 
 ### 📊 Evaluation
 
